@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Ferry</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .result pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .error {
+            background: #fee;
+            border-left-color: #e74c3c;
+        }
+
+        .error h3 {
+            color: #e74c3c;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚢 Simulador de Ferry</h1>
+        <p class="subtitle">Configure os parâmetros da simulação</p>
+
+        <form id="simulationForm">
+            <div class="form-group">
+                <label for="vessels_number">Número de Embarcações</label>
+                <input
+                    type="number"
+                    id="vessels_number"
+                    name="vessels_number"
+                    min="1"
+                    required
+                    placeholder="Ex: 3"
+                >
+                <p class="help-text">Quantidade de embarcações na simulação</p>
+            </div>
+
+            <div class="form-group">
+                <label for="each_vessel_departure_period">Período de Saída (minutos)</label>
+                <input
+                    type="number"
+                    id="each_vessel_departure_period"
+                    name="each_vessel_departure_period"
+                    min="1"
+                    required
+                    placeholder="Ex: 15"
+                >
+                <p class="help-text">Intervalo de tempo entre a saída de cada embarcação</p>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                Executar Simulação
+            </button>
+        </form>
+
+        <div id="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('simulationForm');
+        const resultDiv = document.getElementById('result');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const vessels_number = document.getElementById('vessels_number').value;
+            const each_vessel_departure_period = document.getElementById('each_vessel_departure_period').value;
+
+            // Mostra loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading"></span> Simulando...';
+            resultDiv.style.display = 'none';
+
+            try {
+                const url = `http://localhost:8080/simulate?vessels_number=${vessels_number}&each_vessel_departure_period=${each_vessel_departure_period}`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // Mostra resultado
+                resultDiv.className = 'result';
+                resultDiv.innerHTML = `
+                    <h3>✅ Resultado da Simulação</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                resultDiv.style.display = 'block';
+
+            } catch (error) {
+                // Mostra erro
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Erro na Simulação</h3>
+                    <pre>${error.message}</pre>
+                    <p style="margin-top: 10px; color: #666;">
+                        Certifique-se de que o servidor está rodando em http://localhost:8080
+                    </p>
+                `;
+                resultDiv.style.display = 'block';
+            } finally {
+                // Restaura botão
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Executar Simulação';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -116,9 +116,11 @@ class SimScenario:
             # O veiculo embarca em uma embarcação aleatória que não seja a com maior capacidade usada
             vessel = random.choice(disponible_vessels)
 
+            # Reserva o espaço imediatamente para evitar sobrecarga
+            vessel.used_capacity += 1
+
             # Simula o tempo de embarque
             yield self.env.timeout(service_time)
-            vessel.used_capacity += 1
 
             # Remove veiculo da fila de veículos
             yield self.vehicles.get()
