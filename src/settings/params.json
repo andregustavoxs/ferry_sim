@@ -1,0 +1,10 @@
+{
+    "medium_vessel_capacity": 50,
+    "daily_arriving_vehicles": 1200,
+    "percent_peak_daily_arriving_vehicles": 0.4,
+    "peak_times": [[60, 180], [660, 780]],
+    "simulation_time": 960,
+    "average_embark_time": 15,
+    "average_disembark_time": 0.25,
+    "average_crossing_time": 80
+}
